@@ -2,43 +2,70 @@ package ru.javarush.gogolin.cryptoanalizer.action;
 
 import ru.javarush.gogolin.cryptoanalizer.entity.Result;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static ru.javarush.gogolin.cryptoanalizer.entity.Constants.alphabet;
 
 public class Encoder implements Action {
-    @Override
-    public Result execute() {
-        return null;
+    private final ReaderFile readerFile;
+    private final WriterFile writerFile;
+
+    private final Map<Character, Integer> indexByChar;
+    private final Map<Integer, Character> charByIndex;
+
+    public Encoder() {
+        this.readerFile = new ReaderFileImpl();
+        this.writerFile = new WriterFileImpl();
+        this.indexByChar = new HashMap<>();
+        this.charByIndex = new HashMap<>();
+        for (int i = 0; i < alphabet.length(); i++) {
+            indexByChar.put(alphabet.charAt(i), i);
+            charByIndex.put(i, alphabet.charAt(i));
+        }
     }
 
-    public static String encode(String str, int shift) {
+    @Override
+    public Result execute(String[] parameters) {
+        String encodedFile = parameters[1];
+        String sourceFile = parameters[0];
+        List<String> list = readerFile.readFile(sourceFile);
+        List<String> encodedList = new ArrayList<>();
+        int shift = Integer.valueOf(parameters[2]);
+        for (int i = 0; i < list.size(); i++) {
+            encodedList.add(encode(list.get(i), shift));
+        }
+        writerFile.writeFile(encodedFile, encodedList);
+        return new Result("текст закодирован в файле " + encodedFile);
+    }
+
+    public String encode(String str, int shift) {
         StringBuilder newStr = new StringBuilder();
         for (int i = 0; i < str.length(); i++) {
-
-            String lowCase = str.toLowerCase();
-            int indexOf = alphabet.indexOf(lowCase.charAt(i));
-            if (Math.abs(shift) > alphabet.length()) {
-                shift %= alphabet.length();
-            }
-            if (indexOf != -1) {
+            Character c = (str.charAt(i) + "").toLowerCase().charAt(0);
+            if (indexByChar.containsKey(c)) {
+                int indexOf = indexByChar.get(c);
+                if (Math.abs(shift) > alphabet.length()) {
+                    shift %= alphabet.length();
+                }
                 indexOf += shift;
-
                 if (indexOf >= alphabet.length()) {
                     indexOf %= alphabet.length();
-                }
-                else if(indexOf < 0){
-                    if(Math.abs(indexOf) > alphabet.length()){
+                } else if (indexOf < 0) {
+                    if (Math.abs(indexOf) > alphabet.length()) {
                         indexOf %= alphabet.length();
                     }
                     indexOf = alphabet.length() + indexOf;
                 }
                 if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z' ||
                         str.charAt(i) >= 'А' && str.charAt(i) <= 'Я') {
-                    String upCaseStr = alphabet.toUpperCase();
-                    newStr.append(upCaseStr.charAt(indexOf));
+                    newStr.append(charByIndex.get(indexOf).toString().toUpperCase());
                 } else {
-                    newStr.append(alphabet.charAt(indexOf));
+                    newStr.append(charByIndex.get(indexOf));
                 }
-            }else {
+            } else {
                 newStr.append(str.charAt(i));
             }
         }
