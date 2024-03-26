@@ -65,18 +65,9 @@ public class BruteForce implements Action{
             while (reader.ready())
             {
                 String line = reader.readLine();
-                String[] parts = line.split(" ");
+                String[] parts = line.split("\\s");
                 for (int i = 0; i < parts.length; i++) {
-                    if(parts[i].isEmpty()
-                            || parts[i].contains(",")
-                            || parts[i].contains(".")
-                            || parts[i].contains("- ")
-                            || parts[i].contains(" -")
-                            || parts[i].contains(")")
-                            || parts[i].contains("(")
-                            || parts[i].contains("[")
-                            || parts[i].contains("]")
-                    ){
+                    if(parts[i].isEmpty()){
                         continue;
                     }
                     list.add(parts[i]);
